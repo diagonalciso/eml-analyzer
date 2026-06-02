@@ -347,15 +347,59 @@ def _run_pdfid(path: str) -> dict[str, Any]:
     cmd = _find_tool(["pdfid.py", "pdfid"])
     if cmd:
         return _run_tool([cmd, path], "pdfid")
+    if getattr(sys, "frozen", False):
+        # Inside a frozen exe: call pdfid module API directly (no subprocess)
+        return _run_pdfid_inprocess(path)
     if _module_exists("pdfid"):
         return _run_tool([sys.executable, "-m", "pdfid", path], "pdfid")
     return {"status": "missing", "tool": "pdfid"}
+
+
+def _run_pdfid_inprocess(path: str) -> dict[str, Any]:
+    try:
+        import contextlib
+        import pdfid.pdfid as _pdfid_mod  # type: ignore
+
+        sink = io.StringIO()
+        with contextlib.redirect_stdout(sink), contextlib.redirect_stderr(io.StringIO()):
+            try:
+                doc = _pdfid_mod.PDFiD(path)
+                output = _pdfid_mod.PDFiD2String(doc, False)
+            except SystemExit:
+                output = sink.getvalue()
+        if not output:
+            output = sink.getvalue()
+        output = str(output).strip()
+        if not output:
+            return {"status": "missing", "tool": "pdfid"}
+        return {
+            "status": "ok",
+            "tool": "pdfid",
+            "returncode": 0,
+            "output": output,
+            "truncated": False,
+            "counts": _parse_pdfid_counts(output),
+        }
+    except Exception as exc:
+        return {"status": "error", "tool": "pdfid", "error": str(exc)}
 
 
 def _run_pdf_parser(path: str) -> dict[str, Any]:
     cmd = _find_tool(["pdf-parser.py", "pdf-parser"])
     if cmd:
         return _run_tool([cmd, path], "pdf-parser", max_len=None)
+    if getattr(sys, "frozen", False):
+        # Look for pdf-parser.py extracted from the frozen bundle's _MEIPASS
+        meipass = getattr(sys, "_MEIPASS", None)
+        if meipass:
+            bundled = Path(meipass) / "tools" / "pdf-parser.py"
+            if bundled.exists():
+                python_cmd = shutil.which("python") or shutil.which("python3")
+                if python_cmd:
+                    return _run_tool(
+                        [python_cmd, str(bundled), path], "pdf-parser", max_len=None
+                    )
+        return {"status": "missing", "tool": "pdf-parser"}
     auto_download = os.getenv("TOOLS_AUTO_DOWNLOAD", "false").lower() in {
         "1",
         "true",
@@ -421,7 +465,10 @@ def _module_exists(name: str) -> bool:
 
 
 def _download_pdf_parser() -> str | None:
-    tools_dir = Path(__file__).resolve().parent / "tools"
+    if getattr(sys, "frozen", False):
+        tools_dir = Path(sys.executable).parent / "tools"
+    else:
+        tools_dir = Path(__file__).resolve().parent / "tools"
     tools_dir.mkdir(parents=True, exist_ok=True)
     dest = tools_dir / "pdf-parser.py"
     url = (

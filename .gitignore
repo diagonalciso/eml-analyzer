@@ -6,3 +6,7 @@ eml_analyzer/__pycache__/*
 eml/*
 eml_analyzer/tools/*
 *.sqlite
+# PyInstaller build artifacts
+build/
+dist/
+*.spec.bak

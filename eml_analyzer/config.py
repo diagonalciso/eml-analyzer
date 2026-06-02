@@ -147,7 +147,13 @@ def _parse_int(raw: str | None, default: int) -> int:
 
 
 def _load_dotenv() -> None:
-    env_path = Path(".env")
+    import sys
+
+    if getattr(sys, "frozen", False):
+        # Running as a PyInstaller single-file exe — .env lives beside the executable
+        env_path = Path(sys.executable).parent / ".env"
+    else:
+        env_path = Path(".env")
     if not env_path.exists():
         return
     try:
