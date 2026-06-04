@@ -36,6 +36,8 @@ hiddenimports = [
     "eml_analyzer.mxtoolbox_client",
     "eml_analyzer.opentip_client",
     "eml_analyzer.ipinfo_client",
+    "eml_analyzer.msg_parser",
+    "extract_msg",
     # stdlib modules that PyInstaller sometimes misses
     "email",
     "email.parser",
@@ -65,7 +67,7 @@ if _os.path.exists(_pdf_parser_src):
 # Playwright is intentionally excluded: its browser binaries (~200 MB) cannot
 # be self-contained inside the exe. Users who need URL screenshots must install
 # playwright separately on the host: pip install playwright && playwright install chromium
-for _pkg in ("oletools", "olefile", "peepdf", "pdfid", "PIL", "pyzbar", "fitz"):
+for _pkg in ("extract_msg", "oletools", "olefile", "peepdf", "pdfid", "PIL", "pyzbar", "fitz"):
     try:
         _d, _b, _h = collect_all(_pkg)
         datas += _d
