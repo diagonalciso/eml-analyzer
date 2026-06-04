@@ -14,7 +14,7 @@ if errorlevel 1 (
 )
 
 echo [2/3] Installing all runtime dependencies...
-pip install --quiet --upgrade requests "oletools>=0.60.2" "olefile>=0.47" "pdfid>=1.0.0" "pillow>=10.2.0" "pyzbar>=0.1.9" "pymupdf>=1.24.0"
+pip install --quiet --upgrade requests "extract-msg>=0.48" "oletools>=0.60.2" "olefile>=0.47" "pdfid>=1.0.0" "pillow>=10.2.0" "pyzbar>=0.1.9" "pymupdf>=1.24.0"
 REM peepdf-3 has an optional heavy C++ dependency (STPyV8); install without it
 pip install --quiet --upgrade --no-deps "peepdf-3>=0.4.2"
 if errorlevel 1 (
