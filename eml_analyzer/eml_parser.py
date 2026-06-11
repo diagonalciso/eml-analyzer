@@ -305,7 +305,11 @@ class EmlParser:
         summary = auth_alignment.get("summary") or {}
         for mech in ("spf", "dkim", "dmarc"):
             result = ((summary.get(mech) or {}).get("result") or "").strip()
-            if result:
+            # Only promote to the alignment-derived result when it is strictly
+            # more severe than what the raw parser found; this prevents a
+            # pass from alignment silently replacing a fail from the raw headers
+            # and suppressing the auth-failure score.
+            if result and _auth_rank(result) > _auth_rank(auth_results.get(mech, "")):
                 auth_results[mech] = result
         arc_chain = self._analyze_arc_chain(msg)
         timing, mta_anomalies, mta_anomaly_details = self._analyze_timing(
@@ -401,7 +405,10 @@ class EmlParser:
 
                 old = summary.get(mech) or {}
                 old_result = str(old.get("result") or "").lower()
-                if _auth_rank(result) >= _auth_rank(old_result):
+                # Use > (strict) so the first occurrence of equal-ranked results
+                # (e.g. two "pass" entries) is kept, preserving the most
+                # authoritative (innermost) AR header's verdict.
+                if _auth_rank(result) > _auth_rank(old_result):
                     summary[mech] = {
                         "result": result,
                         "domain": mech_domain or "",
@@ -675,8 +682,7 @@ def _auth_rank(result: str) -> int:
         return 2
     if value in {"pass"}:
         return 1
-    if value:
-        return 1
+    # Unknown or empty strings rank 0 — never overwrite a recognised result.
     return 0
 
 

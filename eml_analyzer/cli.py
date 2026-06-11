@@ -139,7 +139,7 @@ def main(argv: list[str] | None = None) -> int:
     if debug:
         verbose = True
     debug_log_path = args.debug_log or config.debug_log_file
-    if debug_log_path and not args.case_bundle:
+    if debug_log_path:
         from .log_utils import set_log_file
 
         set_log_file(debug_log_path)
@@ -256,7 +256,7 @@ def main(argv: list[str] | None = None) -> int:
             bundle_path = _finalize_case_bundle(case_bundle_info, eml_path)
             sys.stderr.write(f"Case bundle created: {bundle_path}\n")
 
-    if output_dir and total > 1 and not args.case_bundle:
+    if output_dir and total > 1:
         correlation = build_correlation(all_reports)
         if args.json:
             corr_path = _resolve_correlation_path(output_dir, ".json")

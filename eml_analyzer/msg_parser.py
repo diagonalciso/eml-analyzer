@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import email.utils
 import io
+from email import message_from_bytes as _email_from_bytes
 from email import message_from_string
 from email import encoders as email_encoders
 from email.mime.base import MIMEBase
@@ -181,8 +182,12 @@ def _make_nested_msg_part(att: object) -> MIMEBase:
         or getattr(att, "shortFilename", None)
         or "nested.msg"
     )
+    # set_payload must receive a list[Message] so get_payload() returns a list;
+    # passing raw bytes here causes get_payload(decode=True) to return None and
+    # silently drops the nested message during EmlParser's recursive parsing.
     part = MIMEBase("message", "rfc822")
-    part.set_payload(nested_bytes)
+    if nested_bytes:
+        part.set_payload([_email_from_bytes(nested_bytes)])
     part.add_header("Content-Disposition", "attachment", filename=fname)
     return part
 
