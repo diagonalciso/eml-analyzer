@@ -1,0 +1,15 @@
+services:
+  eml-analyzer:
+    build: .
+    image: eml-analyzer-web:latest
+    container_name: eml-analyzer
+    restart: unless-stopped
+    ports:
+      - "${EMLANALYZER_PORT:-8104}:8104"
+    environment:
+      PORT: "8104"
+      # Optional enrichment API keys (leave unset for fully offline analysis):
+      # VT_API_KEY: "..."
+      # ABUSEIPDB_API_KEY: "..."
+      # URLSCAN_API_KEY: "..."
+      # IPINFO_API_KEY: "..."
