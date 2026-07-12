@@ -1,5 +1,7 @@
 # EML Analyzer
 
+> EML analysis tool that parses messages, extracts headers, URLs, and attachments, and recursively analyzes nested EML attachments. Optional VirusTotal lookups are supported for attachment hashes and URLs.
+
 ![Cover](Cover.png)
 
 EML Analyzer is a professional‑grade email triage toolkit for security analysts. It parses headers and bodies, walks nested EML attachments, extracts IOCs, calculates hashes, and enriches findings with optional threat‑intel lookups. Results are delivered as structured JSON for investigations and a polished HTML report for quick review.
